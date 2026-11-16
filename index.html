@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora Python - Neomórfica</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="calculator">
+    <!-- Barra Superior -->
+    <div class="top-bar">
+      <button id="undoBtn" class="icon-btn" title="Desfazer" disabled>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 14 4 9l5-5"/>
+          <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/>
+        </svg>
+      </button>
+
+      <button id="pythonModeBtn" class="mode-btn" title="Alternar operadores extras do Python (**, //, % de)">
+        Python
+      </button>
+
+      <button id="redoBtn" class="icon-btn" title="Refazer" disabled>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 14 5-5-5-5"/>
+          <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Visor -->
+    <div class="display-area">
+      <div id="expression" class="expression"></div>
+      <div id="display" class="result">0</div>
+    </div>
+
+    <!-- Teclado -->
+    <div class="keypad">
+      <!-- Linha 1 -->
+      <button class="btn btn-ac" data-action="clear">
+        <div class="btn-inner">AC</div>
+      </button>
+
+      <button class="btn std-op" data-action="sqrt" title="Raiz quadrada">
+        <div class="btn-inner op">√</div>
+      </button>
+      <button class="btn std-op" data-op="%" title="Resto da divisão (n1 % n2)">
+        <div class="btn-inner op">%</div>
+      </button>
+      <button class="btn std-op" data-op="÷" title="Divisão (n1 / n2)">
+        <div class="btn-inner op op-lg">÷</div>
+      </button>
+
+      <!-- Operadores Extras Python -->
+      <button class="btn py-op hidden" data-op="**" title="Potência (n1 ** n2)">
+        <div class="btn-inner op">**</div>
+      </button>
+      <button class="btn py-op hidden" data-op="//" title="Divisão inteira (n1 // n2)">
+        <div class="btn-inner op">//</div>
+      </button>
+      <button class="btn py-op hidden" data-op="% de" title="Percentual ((n1 / n2) * 100)">
+        <div class="btn-inner op op-sm">% de</div>
+      </button>
+
+      <!-- Linha 2 -->
+      <button class="btn" data-op="x" title="Multiplicação (n1 * n2)">
+        <div class="btn-inner op">x</div>
+      </button>
+      <button class="btn" data-digit="1"><div class="btn-inner num">1</div></button>
+      <button class="btn" data-digit="2"><div class="btn-inner num">2</div></button>
+      <button class="btn" data-digit="3"><div class="btn-inner num">3</div></button>
+
+      <!-- Linha 3 -->
+      <button class="btn" data-op="-" title="Subtração (n1 - n2)">
+        <div class="btn-inner op op-lg">-</div>
+      </button>
+      <button class="btn" data-digit="4"><div class="btn-inner num">4</div></button>
+      <button class="btn" data-digit="5"><div class="btn-inner num">5</div></button>
+      <button class="btn" data-digit="6"><div class="btn-inner num">6</div></button>
+
+      <!-- Linha 4 -->
+      <button class="btn" data-op="+" title="Soma (n1 + n2)">
+        <div class="btn-inner op op-lg">+</div>
+      </button>
+      <button class="btn" data-digit="7"><div class="btn-inner num">7</div></button>
+      <button class="btn" data-digit="8"><div class="btn-inner num">8</div></button>
+      <button class="btn" data-digit="9"><div class="btn-inner num">9</div></button>
+
+      <!-- Linha 5 -->
+      <button class="btn btn-equals" data-action="equals" title="Calcular resultado (=)">=</button>
+      <button class="btn btn-zero" data-digit="0">
+        <div class="btn-inner num">0</div>
+      </button>
+      <button class="btn" data-action="decimal">
+        <div class="btn-inner num" style="font-size: 24px;">,</div>
+      </button>
+    </div>
+
+    <!-- Barra Indicadora Inferior -->
+    <div class="home-indicator"></div>
+  </div>
+
+  <script>
+    let display = '0';
+    let prevValue = null;
+    let operator = null;
+    let waitingForOperand = false;
+    let expression = '';
+    let pythonMode = false;
+    let history = [];
+    let historyIndex = -1;
+
+    const displayEl = document.getElementById('display');
+    const expressionEl = document.getElementById('expression');
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    const pythonModeBtn = document.getElementById('pythonModeBtn');
+
+    function formatPT(numStr) {
+      if (numStr === 'Erro' || numStr === 'Indefinido') return numStr;
+      return String(numStr).replace('.', ',');
+    }
+
+    function parseNum(str) {
+      return parseFloat(String(str).replace(',', '.'));
+    }
+
+    function updateUI() {
+      const formatted = formatPT(display);
+      displayEl.textContent = formatted;
+      expressionEl.textContent = expression;
+
+      displayEl.classList.remove('medium', 'small');
+      if (formatted.length > 12) {
+        displayEl.classList.add('small');
+      } else if (formatted.length > 9) {
+        displayEl.classList.add('medium');
+      }
+
+      undoBtn.disabled = historyIndex <= 0;
+      redoBtn.disabled = historyIndex >= history.length - 1;
+    }
+
+    function calculate(n1, n2, op) {
+      switch (op) {
+        case '+': return n1 + n2;
+        case '-': return n1 - n2;
+        case 'x': return n1 * n2;
+        case '÷': return n2 === 0 ? 'Erro' : n1 / n2;
+        case '**': return Math.pow(n1, n2);
+        case '//': return n2 === 0 ? 'Erro' : Math.floor(n1 / n2);
+        case '%': return n2 === 0 ? 'Erro' : n1 % n2;
+        case '% de': return n2 === 0 ? 'Erro' : (n1 / n2) * 100;
+        default: return n2;
+      }
+    }
+
+    function formatResult(val) {
+      if (typeof val === 'string') return val;
+      if (!Number.isFinite(val)) return 'Erro';
+      return String(Math.round(val * 1e10) / 1e10);
+    }
+
+    function addHistory(expr, res) {
+      history = [...history.slice(0, historyIndex + 1), { expression: expr, result: res }];
+      historyIndex = history.length - 1;
+    }
+
+    function inputDigit(digit) {
+      if (display === 'Erro' || waitingForOperand) {
+        display = String(digit);
+        waitingForOperand = false;
+      } else {
+        display = display === '0' ? String(digit) : display + digit;
+      }
+      updateUI();
+    }
+
+    function inputDecimal() {
+      if (display === 'Erro' || waitingForOperand) {
+        display = '0.';
+        waitingForOperand = false;
+      } else if (!display.includes('.')) {
+        display += '.';
+      }
+      updateUI();
+    }
+
+    function clearAll() {
+      display = '0';
+      prevValue = null;
+      operator = null;
+      waitingForOperand = false;
+      expression = '';
+      updateUI();
+    }
+
+    function handleSqrt() {
+      const current = parseNum(display);
+      if (isNaN(current) || current < 0) {
+        display = 'Erro';
+        updateUI();
+        return;
+      }
+      const res = formatResult(Math.sqrt(current));
+      const expr = `√(${formatPT(display)})`;
+      expression = expr;
+      display = res;
+      waitingForOperand = true;
+      addHistory(expr, res);
+      updateUI();
+    }
+
+    function performOperation(nextOp) {
+      const inputValue = parseNum(display);
+      if (isNaN(inputValue)) return;
+
+      if (prevValue === null) {
+        prevValue = inputValue;
+        expression = `${formatPT(inputValue)} ${nextOp}`;
+      } else if (operator && !waitingForOperand) {
+        const result = calculate(prevValue, inputValue, operator);
+        const formatted = formatResult(result);
+        display = formatted;
+        if (formatted === 'Erro') {
+          prevValue = null;
+          operator = null;
+          expression = '';
+          waitingForOperand = true;
+          updateUI();
+          return;
+        }
+        prevValue = parseFloat(formatted);
+        expression = `${formatPT(formatted)} ${nextOp}`;
+      } else {
+        expression = `${formatPT(prevValue)} ${nextOp}`;
+      }
+
+      waitingForOperand = true;
+      operator = nextOp;
+      updateUI();
+    }
+
+    function handleEquals() {
+      if (operator === null || prevValue === null) return;
+      const inputValue = parseNum(display);
+      if (isNaN(inputValue)) return;
+
+      const result = calculate(prevValue, inputValue, operator);
+      const formatted = formatResult(result);
+      const fullExpr = `${formatPT(prevValue)} ${operator} ${formatPT(inputValue)}`;
+
+      expression = fullExpr;
+      display = formatted;
+      prevValue = null;
+      operator = null;
+      waitingForOperand = true;
+
+      if (formatted !== 'Erro') {
+        addHistory(fullExpr, formatted);
+      }
+      updateUI();
+    }
+
+    document.querySelectorAll('[data-digit]').forEach((btn) => {
+      btn.addEventListener('click', () => inputDigit(btn.dataset.digit));
+    });
+
+    document.querySelectorAll('[data-op]').forEach((btn) => {
+      btn.addEventListener('click', () => performOperation(btn.dataset.op));
+    });
+
+    document.querySelector('[data-action="clear"]').addEventListener('click', clearAll);
+    document.querySelector('[data-action="decimal"]').addEventListener('click', inputDecimal);
+    document.querySelector('[data-action="sqrt"]').addEventListener('click', handleSqrt);
+    document.querySelector('[data-action="equals"]').addEventListener('click', handleEquals);
+
+    pythonModeBtn.addEventListener('click', () => {
+      pythonMode = !pythonMode;
+      pythonModeBtn.textContent = pythonMode ? 'Modo Python' : 'Python';
+      pythonModeBtn.classList.toggle('active', pythonMode);
+
+      document.querySelectorAll('.std-op').forEach((el) => el.classList.toggle('hidden', pythonMode));
+      document.querySelectorAll('.py-op').forEach((el) => el.classList.toggle('hidden', !pythonMode));
+    });
+
+    undoBtn.addEventListener('click', () => {
+      if (historyIndex > 0) {
+        historyIndex--;
+        expression = history[historyIndex].expression;
+        display = history[historyIndex].result;
+        prevValue = null;
+        operator = null;
+        waitingForOperand = true;
+        updateUI();
+      }
+    });
+
+    redoBtn.addEventListener('click', () => {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+        expression = history[historyIndex].expression;
+        display = history[historyIndex].result;
+        prevValue = null;
+        operator = null;
+        waitingForOperand = true;
+        updateUI();
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key >= '0' && e.key <= '9') inputDigit(e.key);
+      else if (e.key === ',' || e.key === '.') inputDecimal();
+      else if (e.key === '+') performOperation('+');
+      else if (e.key === '-') performOperation('-');
+      else if (e.key === '*') performOperation('x');
+      else if (e.key === '/') {
+        e.preventDefault();
+        performOperation('÷');
+      } else if (e.key === '%') performOperation('%');
+      else if (e.key === '^') performOperation('**');
+      else if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        handleEquals();
+      } else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') clearAll();
+      else if (e.key === 'Backspace') {
+        if (!waitingForOperand && display.length > 1) {
+          display = display.slice(0, -1);
+        } else {
+          display = '0';
+        }
+        updateUI();
+      }
+    });
+  </script>
+</body>
+</html>

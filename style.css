@@ -1,0 +1,246 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #E5E8EE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Corpo da Calculadora */
+.calculator {
+  width: 100%;
+  max-width: 360px;
+  height: 720px;
+  background-color: #F2F4F7;
+  border-radius: 42px;
+  box-shadow: 0 24px 60px rgba(30, 41, 59, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px 24px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Barra Superior */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 9999px;
+  color: #6C727A;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s, background-color 0.2s, color 0.2s;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.icon-btn:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.icon-btn:disabled {
+  color: #B8BEC7;
+  cursor: default;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  color: #9AA0A8;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn:hover {
+  color: #6C727A;
+}
+
+.mode-btn.active {
+  background-color: rgba(217, 155, 0, 0.15);
+  color: #B47D00;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Visor Digital */
+.display-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: 0 8px 28px;
+  overflow: hidden;
+}
+
+.expression {
+  color: #8E939A;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.025em;
+  min-height: 24px;
+  margin-bottom: 4px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result {
+  color: #63686E;
+  font-size: 46px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: font-size 0.15s ease;
+}
+
+.result.medium {
+  font-size: 36px;
+}
+
+.result.small {
+  font-size: 30px;
+}
+
+/* Teclado 4x5 */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding-bottom: 16px;
+}
+
+/* Botão Base Neomórfico */
+.btn {
+  aspect-ratio: 1 / 1;
+  border: none;
+  border-radius: 50%;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: linear-gradient(145deg, #FAFBFC, #E6E9EF);
+  box-shadow: 6px 6px 14px #D5D9E0, -6px -6px 14px #FFFFFF, inset 1px 1px 2px rgba(255, 255, 255, 0.9);
+  transition: transform 0.1s ease;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #EEF1F5, #F8F9FB);
+  box-shadow: inset 2px 2px 4px rgba(213, 217, 224, 0.45), inset -2px -2px 4px #FFFFFF;
+  font-weight: 500;
+}
+
+/* Cores dos textos solicitadas */
+.num {
+  color: #2563EB; /* Números em azul */
+  font-size: 22px;
+}
+
+.op {
+  color: #D99B00; /* Operadores matemáticos em amarelo/dourado */
+  font-size: 20px;
+}
+
+.op-lg {
+  font-size: 22px;
+}
+
+.op-sm {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Botão AC com anel escuro */
+.btn-ac {
+  padding: 3.5px;
+  background: linear-gradient(135deg, #FFFFFF 20%, #B0B7C3 60%, #2C313A 100%);
+  box-shadow: 6px 6px 14px #D5D9E0, -6px -6px 14px #FFFFFF;
+}
+
+.btn-ac .btn-inner {
+  background: #F2F4F7;
+  box-shadow: none;
+  color: #6C727A;
+  font-size: 18px;
+}
+
+/* Botão Igual Amarelo Vibrante */
+.btn-equals {
+  padding: 0;
+  background: radial-gradient(circle at 35% 30%, #FFD633 0%, #F2C21A 65%, #E0AE08 100%);
+  box-shadow: 6px 6px 14px #D5D9E0, -6px -6px 14px #FFFFFF, inset 0 2px 4px rgba(255, 255, 255, 0.6);
+  color: #5B4908;
+  font-size: 26px;
+  font-weight: 500;
+}
+
+/* Botão Zero Pílula Horizontal */
+.btn-zero {
+  grid-column: span 2;
+  aspect-ratio: auto;
+  border-radius: 9999px;
+}
+
+.btn-zero .btn-inner {
+  border-radius: 9999px;
+  justify-content: flex-start;
+  padding-left: 28px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Barra Indicadora Inferior */
+.home-indicator {
+  width: 112px;
+  height: 4px;
+  background-color: #C4C8CE;
+  border-radius: 9999px;
+  margin: 0 auto;
+  opacity: 0.8;
+}
